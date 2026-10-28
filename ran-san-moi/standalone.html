@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Rắn Săn Mồi - Game trí tuệ nâng cao kiến thức</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Fredoka', 'Be Vietnam Pro', sans-serif;
+      background: linear-gradient(135deg, #e0f2fe 0%, #fef3c7 50%, #fce7f3 100%);
+      min-height: 100vh;
+      touch-action: manipulation;
+    }
+    .cute-pop {
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+    }
+    .cute-pop:hover { transform: translateY(-2px) scale(1.02); }
+    .cute-pop:active { transform: translateY(1px) scale(0.96); }
+    @keyframes screen-shake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-6px, 4px); }
+      40% { transform: translate(6px, -4px); }
+      60% { transform: translate(-4px, -2px); }
+      80% { transform: translate(4px, 4px); }
+    }
+    .shake { animation: screen-shake 0.35s ease-in-out; }
+  </style>
+</head>
+<body class="selection:bg-pink-400 selection:text-white flex flex-col justify-between min-h-screen text-slate-800">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white/85 backdrop-blur-md border-b border-pink-200/60 px-4 py-2.5 shadow-sm sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+      <!-- Logo 1 (ảnh thứ 2) cắt nền đen, tròn to rõ -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 sm:w-13 sm:h-13 rounded-full overflow-hidden border-2 border-amber-400 shadow-md shrink-0 bg-white flex items-center justify-center">
+          <img src="https://ais-pre-rmbxir7emxbzisbk35nehe-676742039139.asia-southeast1.run.app/assets/aistudio/image_df7dd2ac.png" 
+               alt="Logo" class="w-full h-full object-cover scale-[1.05] rounded-full">
+        </div>
+        <div>
+          <span class="font-extrabold text-slate-800 text-base sm:text-xl tracking-tight block">Rắn Săn Mồi</span>
+          <span class="text-[11px] sm:text-xs text-pink-500 font-bold block leading-tight">Game trí tuệ nâng cao kiến thức</span>
+        </div>
+      </div>
+
+      <!-- Controls Right -->
+      <div class="flex items-center gap-2">
+        <button id="btn-sound" class="w-9 h-9 rounded-xl bg-pink-100 hover:bg-pink-200 text-pink-600 flex items-center justify-center font-bold text-sm cute-pop" title="Bật/Tắt âm thanh">
+          🔊
+        </button>
+        <button id="btn-pause" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-700 font-bold text-xs flex items-center gap-1 cute-pop">
+          ⏸️ <span>Dừng</span>
+        </button>
+        <button id="btn-rules" class="px-3 py-1.5 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-bold text-xs flex items-center gap-1 cute-pop">
+          📖 <span>Luật</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN GAME AREA -->
+  <main class="flex-1 flex flex-col items-center justify-center p-3 max-w-4xl mx-auto w-full">
+    <!-- STATS BAR -->
+    <div class="w-full max-w-[420px] mb-3 grid grid-cols-3 gap-2">
+      <div class="bg-white/90 border-2 border-pink-200 rounded-2xl p-2 text-center shadow-sm">
+        <span class="text-[11px] font-bold text-slate-500 block">ĐIỂM</span>
+        <span id="score-val" class="text-xl sm:text-2xl font-black text-pink-600">0</span>
+      </div>
+      <div class="bg-white/90 border-2 border-purple-200 rounded-2xl p-2 text-center shadow-sm">
+        <span class="text-[11px] font-bold text-slate-500 block">LEVEL</span>
+        <span id="level-val" class="text-xl sm:text-2xl font-black text-purple-600">0</span>
+      </div>
+      <div class="bg-white/90 border-2 border-amber-200 rounded-2xl p-2 text-center shadow-sm">
+        <span class="text-[11px] font-bold text-slate-500 block">KỶ LỤC</span>
+        <span id="high-val" class="text-xl sm:text-2xl font-black text-amber-600">0</span>
+      </div>
+    </div>
+
+    <!-- CANVAS CONTAINER -->
+    <div class="relative bg-white/95 rounded-3xl p-3 border-4 border-pink-300 shadow-xl max-w-[420px] w-full flex flex-col items-center">
+      <canvas id="game-canvas" width="400" height="400" class="rounded-2xl w-full aspect-square bg-emerald-50/50 shadow-inner block"></canvas>
+
+      <!-- GAME OVER OVERLAY -->
+      <div id="game-over-box" class="hidden absolute inset-0 bg-slate-900/60 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center p-6 text-center text-white z-20">
+        <span class="text-5xl mb-2">💥</span>
+        <h2 class="text-2xl font-black mb-1">RẮN ĐÃ ĐỤNG TRÚNG!</h2>
+        <p class="text-sm text-pink-200 mb-4">Điểm số đạt được: <span id="final-score" class="font-bold text-white text-lg">0</span></p>
+        <button id="btn-restart" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 rounded-2xl font-black text-base shadow-lg cute-pop">
+          CHƠI LẠI NGAY 🔄
+        </button>
+      </div>
+    </div>
+
+    <!-- MOBILE CONTROLS -->
+    <div class="w-full max-w-[280px] grid grid-cols-3 gap-2 mt-4 select-none">
+      <div></div>
+      <button id="ctrl-up" class="h-12 bg-white/90 border-2 border-pink-300 rounded-2xl text-xl font-black shadow flex items-center justify-center active:bg-pink-100 cute-pop">⬆️</button>
+      <div></div>
+      <button id="ctrl-left" class="h-12 bg-white/90 border-2 border-pink-300 rounded-2xl text-xl font-black shadow flex items-center justify-center active:bg-pink-100 cute-pop">⬅️</button>
+      <button id="ctrl-down" class="h-12 bg-white/90 border-2 border-pink-300 rounded-2xl text-xl font-black shadow flex items-center justify-center active:bg-pink-100 cute-pop">⬇️</button>
+      <button id="ctrl-right" class="h-12 bg-white/90 border-2 border-pink-300 rounded-2xl text-xl font-black shadow flex items-center justify-center active:bg-pink-100 cute-pop">➡️</button>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="py-2.5 px-4 text-center border-t border-pink-200/60 bg-white/70">
+    <p class="text-xs font-bold text-slate-600">
+      Rắn Săn Mồi • Giải đố Toán 9 Đại số • Cảm ơn vì đã chơi!
+    </p>
+  </footer>
+
+  <!-- START MODAL (5 LOGOS XẾP HÀNG NGANG TO RÕ) -->
+  <div id="start-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="bg-white border-4 border-pink-300 rounded-3xl p-6 sm:p-8 max-w-lg sm:max-w-xl w-full text-center shadow-2xl">
+      <!-- 5 LOGOS XẾP HÀNG NGANG -->
+      <div class="flex items-center justify-center gap-2.5 sm:gap-3.5 mb-5 overflow-x-auto py-1">
+        <div class="w-14 h-14 sm:w-[72px] sm:h-[72px] md:w-20 md:h-20 rounded-full overflow-hidden border-2 sm:border-3 border-amber-400 shadow-lg bg-white shrink-0 hover:scale-110 transition-transform duration-200">
+          <img src="https://ais-pre-rmbxir7emxbzisbk35nehe-676742039139.asia-southeast1.run.app/assets/aistudio/image_df7dd2ac.png" alt="Logo 1" class="w-full h-full object-cover scale-[1.05] rounded-full">
+        </div>
+        <div class="w-14 h-14 sm:w-[72px] sm:h-[72px] md:w-20 md:h-20 rounded-full overflow-hidden border-2 sm:border-3 border-amber-400 shadow-lg bg-white shrink-0 hover:scale-110 transition-transform duration-200">
+          <img src="https://ais-pre-rmbxir7emxbzisbk35nehe-676742039139.asia-southeast1.run.app/assets/aistudio/1793192324780_1938642438057345104_1938642438057345104_39bfd14ceddbb1d93f98ce53b954eb54_3cd8e1b1.jpg" alt="Logo 2" class="w-full h-full object-cover scale-[1.05] rounded-full">
+        </div>
+        <div class="w-14 h-14 sm:w-[72px] sm:h-[72px] md:w-20 md:h-20 rounded-full overflow-hidden border-2 sm:border-3 border-amber-400 shadow-lg bg-white shrink-0 hover:scale-110 transition-transform duration-200">
+          <img src="https://ais-pre-rmbxir7emxbzisbk35nehe-676742039139.asia-southeast1.run.app/assets/aistudio/1793192324800_1938642438057345104_1938642438057345104_2c299cce6404110a042a2067163c0869_0138a7be.jpg" alt="Logo 3" class="w-full h-full object-cover scale-[1.05] rounded-full">
+        </div>
+        <div class="w-14 h-14 sm:w-[72px] sm:h-[72px] md:w-20 md:h-20 rounded-full overflow-hidden border-2 sm:border-3 border-amber-400 shadow-lg bg-white shrink-0 hover:scale-110 transition-transform duration-200">
+          <img src="https://ais-pre-rmbxir7emxbzisbk35nehe-676742039139.asia-southeast1.run.app/assets/aistudio/1793192504511_1938642438057345104_1938642438057345104_de80c8d47e822b64d2f7c3c1031199f6_fc7fa0ef.jpg" alt="Logo 4" class="w-full h-full object-cover scale-[1.05] rounded-full">
+        </div>
+        <div class="w-14 h-14 sm:w-[72px] sm:h-[72px] md:w-20 md:h-20 rounded-full overflow-hidden border-2 sm:border-3 border-amber-400 shadow-lg bg-white shrink-0 hover:scale-110 transition-transform duration-200">
+          <img src="https://ais-pre-rmbxir7emxbzisbk35nehe-676742039139.asia-southeast1.run.app/assets/aistudio/1793192551601_1938642438057345104_1938642438057345104_3f6b372b10ebdd4ac184235e3d8b9d7a_68c44a21.jpg" alt="Logo 5" class="w-full h-full object-cover scale-[1.05] rounded-full">
+        </div>
+      </div>
+
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight mb-1">RẮN SĂN MỒI</h1>
+      <p class="text-xs sm:text-sm text-pink-500 font-bold mb-4">Game trí tuệ nâng cao kiến thức</p>
+
+      <div class="bg-pink-50/80 border border-pink-200 rounded-2xl p-4 text-left text-xs text-slate-700 space-y-2 mb-6">
+        <div>🍎 <strong>Đợt mồi & Hộp Quà:</strong> Có 4 mồi quả, ăn mồi sẽ hết mồi. <em>Chỉ khi mở Hộp Quà giải toán xong mới được triệu hồi đợt mồi mới!</em></div>
+        <div>⚡ <strong>Tốc độ:</strong> Mới vào rất chậm, dễ chơi. <em>Chỉ tăng tốc độ phạt khi trả lời SAI câu hỏi.</em></div>
+        <div>🐍 <strong>Độ khó:</strong> Rắn dài thêm nhanh chóng theo điểm số, cẩn thận kẻo cắn vào thân!</div>
+        <div>👑 <strong>Kỷ lục:</strong> Điểm số cao nhất tự động lưu lại.</div>
+      </div>
+
+      <button id="btn-start" class="w-full py-3.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black text-base rounded-2xl shadow-lg shadow-pink-300 cute-pop">
+        BẮT ĐẦU CHƠI NGAY 🍎
+      </button>
+    </div>
+  </div>
+
+  <!-- MATH QUIZ MODAL -->
+  <div id="quiz-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="bg-white border-4 border-amber-300 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-lg text-xs font-bold">🎁 HỘP QUÀ TOÁN 9</span>
+        <span class="text-xs font-bold text-slate-400">Đại số</span>
+      </div>
+      <h3 id="quiz-question" class="text-base sm:text-lg font-black text-slate-800 mb-4 leading-snug">Giải phương trình: 2x - 6 = 0</h3>
+      <div id="quiz-options" class="space-y-2 mb-4"></div>
+      <div id="quiz-feedback" class="hidden p-3 rounded-2xl text-xs font-bold mb-3"></div>
+      <button id="quiz-confirm" class="hidden w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-xl cute-pop">
+        TIẾP TỤC CHƠI 🚀
+      </button>
+    </div>
+  </div>
+
+  <!-- RULES MODAL -->
+  <div id="rules-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white border-4 border-indigo-200 rounded-3xl p-6 max-w-md w-full shadow-2xl text-center">
+      <h3 class="text-lg font-black text-indigo-700 mb-3">📖 Hướng Dẫn & Luật Chơi</h3>
+      <div class="text-xs text-slate-600 text-left space-y-2 mb-5">
+        <p>• Dùng phím mũi tên hoặc nút ảo trên màn hình để điều khiển rắn ăn quả.</p>
+        <p>• Ăn hết 4 quả mồi trên sân, hãy tìm và chạm vào Hộp Quà 🎁 màu vàng.</p>
+        <p>• Trả lời đúng câu hỏi Toán 9 để nhận thêm điểm thưởng và triệu hồi đợt quả mới.</p>
+        <p>• Trả lời sai sẽ bị trừ điểm và rắn chạy nhanh hơn!</p>
+      </div>
+      <button onclick="document.getElementById('rules-modal').classList.add('hidden')" class="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold text-xs cute-pop">
+        ĐÃ HIỂU 👍
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // WEB AUDIO SOUND SYNTHESIZER
+    let audioCtx = null;
+    let isMuted = false;
+    function playBeep(freq, type, duration) {
+      if (isMuted) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    // GAME STATE & CONSTANTS
+    const GRID_SIZE = 20;
+    const TILE_COUNT = 20;
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let snake = [{x: 10, y: 10}, {x: 10, y: 11}, {x: 10, y: 12}];
+    let dir = {x: 0, y: -1};
+    let nextDir = {x: 0, y: -1};
+    let foods = [];
+    let gift = {x: 14, y: 8};
+    let score = 0;
+    let level = 0;
+    let highScore = parseInt(localStorage.getItem('cute_snake_highscore') || '0', 10);
+    let speed = 360;
+    let isGameOver = false;
+    let isPaused = false;
+    let isQuizActive = false;
+    let lastStepTime = 0;
+    let gameLoopId = null;
+
+    document.getElementById('high-val').innerText = highScore;
+
+    // MATH QUIZZES
+    const QUIZZES = [
+      { q: "Phương trình: 2x - 6 = 0 có nghiệm là?", options: ["x = 2", "x = 3", "x = -3", "x = 0"], correct: 1, exp: "2x = 6 => x = 3" },
+      { q: "Nghiệm của phương trình (x - 2)(x + 5) = 0 là?", options: ["x = 2 hoặc x = -5", "x = -2 hoặc x = 5", "x = 2 hoặc x = 5", "x = -2"], correct: 0, exp: "x - 2 = 0 hoặc x + 5 = 0" },
+      { q: "Phương trình 3x + 1 = 10 có nghiệm là?", options: ["x = 1", "x = 2", "x = 3", "x = 4"], correct: 2, exp: "3x = 9 => x = 3" },
+      { q: "Tìm x biết: 5x = 20?", options: ["x = 2", "x = 4", "x = 5", "x = 10"], correct: 1, exp: "x = 20 / 5 = 4" },
+      { q: "Phương trình 2(x + 1) = 8 có nghiệm là?", options: ["x = 3", "x = 4", "x = 5", "x = 2"], correct: 0, exp: "x + 1 = 4 => x = 3" }
+    ];
+
+    function getRandomTile() {
+      let pos = {x: 5, y: 5};
+      let found = false;
+      while (!found) {
+        pos = { x: Math.floor(Math.random() * TILE_COUNT), y: Math.floor(Math.random() * TILE_COUNT) };
+        const onSnake = snake.some(s => s.x === pos.x && s.y === pos.y);
+        const onFood = foods.some(f => f.x === pos.x && f.y === pos.y);
+        const onGift = gift && gift.x === pos.x && gift.y === pos.y;
+        if (!onSnake && !onFood && !onGift) found = true;
+      }
+      return pos;
+    }
+
+    function spawnFoods() {
+      foods = [];
+      const emojis = ['🍎', '🍓', '🍊', '🍇'];
+      for (let i = 0; i < 4; i++) {
+        const pos = getRandomTile();
+        foods.push({ ...pos, emoji: emojis[i % emojis.length] });
+      }
+      gift = getRandomTile();
+    }
+
+    // DRAWING
+    function draw() {
+      ctx.clearRect(0, 0, 400, 400);
+
+      // Grid background
+      for (let r = 0; r < TILE_COUNT; r++) {
+        for (let c = 0; c < TILE_COUNT; c++) {
+          ctx.fillStyle = (r + c) % 2 === 0 ? '#f0fdf4' : '#ecfdf5';
+          ctx.fillRect(c * GRID_SIZE, r * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+        }
+      }
+
+      // Draw foods
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      foods.forEach(f => {
+        ctx.fillText(f.emoji, f.x * GRID_SIZE + 10, f.y * GRID_SIZE + 10);
+      });
+
+      // Draw gift
+      if (gift) {
+        ctx.fillText('🎁', gift.x * GRID_SIZE + 10, gift.y * GRID_SIZE + 10);
+      }
+
+      // Draw snake
+      snake.forEach((seg, i) => {
+        const isHead = i === 0;
+        ctx.fillStyle = isHead ? '#ec4899' : '#f472b6';
+        ctx.beginPath();
+        ctx.roundRect(seg.x * GRID_SIZE + 1, seg.y * GRID_SIZE + 1, GRID_SIZE - 2, GRID_SIZE - 2, isHead ? 6 : 4);
+        ctx.fill();
+
+        if (isHead) {
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(seg.x * GRID_SIZE + 6, seg.y * GRID_SIZE + 6, 2.5, 0, Math.PI * 2);
+          ctx.arc(seg.x * GRID_SIZE + 14, seg.y * GRID_SIZE + 6, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#1e293b';
+          ctx.beginPath();
+          ctx.arc(seg.x * GRID_SIZE + 6, seg.y * GRID_SIZE + 6, 1.2, 0, Math.PI * 2);
+          ctx.arc(seg.x * GRID_SIZE + 14, seg.y * GRID_SIZE + 6, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    // GAME UPDATE
+    function update(time) {
+      if (!lastStepTime) lastStepTime = time;
+      const elapsed = time - lastStepTime;
+
+      if (elapsed > speed && !isGameOver && !isPaused && !isQuizActive) {
+        lastStepTime = time;
+        dir = { ...nextDir };
+        const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+        // Wall collision
+        if (head.x < 0 || head.x >= TILE_COUNT || head.y < 0 || head.y >= TILE_COUNT) {
+          triggerGameOver();
+          return;
+        }
+
+        // Self collision
+        if (snake.some(s => s.x === head.x && s.y === head.y)) {
+          triggerGameOver();
+          return;
+        }
+
+        snake.unshift(head);
+
+        // Check food collision
+        const foodIdx = foods.findIndex(f => f.x === head.x && f.y === head.y);
+        if (foodIdx >= 0) {
+          foods.splice(foodIdx, 1);
+          score += 1;
+          document.getElementById('score-val').innerText = score;
+          playBeep(600, 'sine', 0.1);
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('cute_snake_highscore', highScore);
+            document.getElementById('high-val').innerText = highScore;
+          }
+          if (score % 5 === 0) {
+            level++;
+            document.getElementById('level-val').innerText = level;
+            playBeep(880, 'triangle', 0.2);
+          }
+        } else if (gift && head.x === gift.x && head.y === gift.y) {
+          gift = null;
+          playBeep(520, 'square', 0.2);
+          triggerQuiz();
+        } else {
+          snake.pop();
+        }
+      }
+
+      draw();
+      gameLoopId = requestAnimationFrame(update);
+    }
+
+    function triggerGameOver() {
+      isGameOver = true;
+      playBeep(180, 'sawtooth', 0.4);
+      document.body.classList.add('shake');
+      setTimeout(() => document.body.classList.remove('shake'), 400);
+      document.getElementById('final-score').innerText = score;
+      document.getElementById('game-over-box').classList.remove('hidden');
+    }
+
+    function triggerQuiz() {
+      isQuizActive = true;
+      const quiz = QUIZZES[Math.floor(Math.random() * QUIZZES.length)];
+      document.getElementById('quiz-question').innerText = quiz.q;
+      const optContainer = document.getElementById('quiz-options');
+      optContainer.innerHTML = '';
+      const feedback = document.getElementById('quiz-feedback');
+      feedback.classList.add('hidden');
+      const confirmBtn = document.getElementById('quiz-confirm');
+      confirmBtn.classList.add('hidden');
+
+      quiz.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full p-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-left text-xs sm:text-sm font-bold text-slate-700 hover:bg-pink-50 hover:border-pink-300 transition cute-pop';
+        btn.innerText = opt;
+        btn.onclick = () => {
+          const isCorrect = idx === quiz.correct;
+          if (isCorrect) {
+            score += 2;
+            document.getElementById('score-val').innerText = score;
+            playBeep(700, 'sine', 0.2);
+            feedback.className = 'p-3 rounded-2xl text-xs font-bold mb-3 bg-emerald-100 text-emerald-800 border border-emerald-300';
+            feedback.innerHTML = '🎉 Chính xác! (+2 điểm)<br><span class="font-normal text-[11px]">' + quiz.exp + '</span>';
+          } else {
+            speed = Math.max(120, speed - 40); // Tăng tốc độ phạt
+            playBeep(220, 'sawtooth', 0.3);
+            feedback.className = 'p-3 rounded-2xl text-xs font-bold mb-3 bg-rose-100 text-rose-800 border border-rose-300';
+            feedback.innerHTML = '❌ Chưa đúng! Rắn bị phạt tăng tốc độ.<br><span class="font-normal text-[11px]">' + quiz.exp + '</span>';
+          }
+          feedback.classList.remove('hidden');
+          confirmBtn.classList.remove('hidden');
+          Array.from(optContainer.children).forEach(c => c.disabled = true);
+        };
+        optContainer.appendChild(btn);
+      });
+
+      document.getElementById('quiz-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('quiz-confirm').onclick = () => {
+      document.getElementById('quiz-modal').classList.add('hidden');
+      isQuizActive = false;
+      spawnFoods();
+    };
+
+    function resetGame() {
+      snake = [{x: 10, y: 10}, {x: 10, y: 11}, {x: 10, y: 12}];
+      dir = {x: 0, y: -1};
+      nextDir = {x: 0, y: -1};
+      score = 0;
+      level = 0;
+      speed = 360;
+      isGameOver = false;
+      isPaused = false;
+      isQuizActive = false;
+      document.getElementById('score-val').innerText = '0';
+      document.getElementById('level-val').innerText = '0';
+      document.getElementById('game-over-box').classList.add('hidden');
+      spawnFoods();
+      lastStepTime = 0;
+    }
+
+    // EVENT LISTENERS
+    document.getElementById('btn-start').onclick = () => {
+      document.getElementById('start-modal').classList.add('hidden');
+      resetGame();
+      requestAnimationFrame(update);
+    };
+
+    document.getElementById('btn-restart').onclick = () => {
+      resetGame();
+    };
+
+    document.getElementById('btn-pause').onclick = () => {
+      isPaused = !isPaused;
+      document.getElementById('btn-pause').innerHTML = isPaused ? '▶️ <span>Tiếp</span>' : '⏸️ <span>Dừng</span>';
+    };
+
+    document.getElementById('btn-sound').onclick = () => {
+      isMuted = !isMuted;
+      document.getElementById('btn-sound').innerText = isMuted ? '🔇' : '🔊';
+    };
+
+    document.getElementById('btn-rules').onclick = () => {
+      document.getElementById('rules-modal').classList.remove('hidden');
+    };
+
+    function setDirection(x, y) {
+      if (dir.x + x === 0 && dir.y + y === 0) return;
+      nextDir = {x, y};
+      playBeep(450, 'sine', 0.04);
+    }
+
+    window.addEventListener('keydown', e => {
+      switch (e.key) {
+        case 'ArrowUp': case 'w': case 'W': setDirection(0, -1); break;
+        case 'ArrowDown': case 's': case 'S': setDirection(0, 1); break;
+        case 'ArrowLeft': case 'a': case 'A': setDirection(-1, 0); break;
+        case 'ArrowRight': case 'd': case 'D': setDirection(1, 0); break;
+      }
+    });
+
+    document.getElementById('ctrl-up').onclick = () => setDirection(0, -1);
+    document.getElementById('ctrl-down').onclick = () => setDirection(0, 1);
+    document.getElementById('ctrl-left').onclick = () => setDirection(-1, 0);
+    document.getElementById('ctrl-right').onclick = () => setDirection(1, 0);
+  </script>
+</body>
+</html>
